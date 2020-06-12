@@ -14,6 +14,7 @@ public class PlayerMovement : MonoBehaviour
     public float runSpeed = 12.0f;
 
     public AudioClip[] footsteps;
+    public AudioClip jumpSound;
     public AudioSource source;
     private bool soundFinished = true;
 
@@ -62,6 +63,8 @@ public class PlayerMovement : MonoBehaviour
         if(Input.GetButtonDown("Jump") && isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            source.clip = jumpSound;
+            source.Play();
         }
 
         velocity.y += gravity * Time.deltaTime;
