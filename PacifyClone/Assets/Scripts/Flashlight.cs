@@ -9,9 +9,11 @@ public class Flashlight : MonoBehaviour
 
     public AudioSource flashlightTrigger;
 
+    private Light lightComponent;
     private Animator animator;
     private void Start()
     {
+        lightComponent = lightSource.GetComponent<Light>();
         animator = GetComponent<Animator>();
         lightSource.SetActive(false);
         flashlightOn = false;
@@ -24,6 +26,7 @@ public class Flashlight : MonoBehaviour
             animator.SetBool("FlashLightOn", true);  
             flashlightOn = true;
             StartCoroutine(lightDelayed());
+            StartCoroutine(flickering());
         }
         else if(Input.GetKeyDown(KeyCode.F) && flashlightOn)
         {
@@ -46,6 +49,19 @@ public class Flashlight : MonoBehaviour
             lightSource.SetActive(false);
             yield return new WaitForSeconds(0.15f);
             animator.SetBool("FlashLightOn", false);
+        }
+    }
+
+    private IEnumerator flickering()
+    {
+        if(flashlightOn)
+        {
+            yield return new WaitForSeconds(10f);
+            lightComponent.intensity = 999999f;
+            yield return new WaitForSeconds(0.1f);
+            lightComponent.intensity = 9999999f;
+            yield return new WaitForSeconds(0.1f);
+            StartCoroutine(flickering());
         }
     }
 }
