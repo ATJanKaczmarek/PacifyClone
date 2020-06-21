@@ -29,7 +29,8 @@ public class Enemy : MonoBehaviour
     private GameObject player;
     private Vector3 previousSighting;
     private enemyStates states;
-    private bool canRoam = true;
+    private Node[] n;
+    private Queue<Node> q;
 
     #endregion private
     #endregion Variables
@@ -41,7 +42,15 @@ public class Enemy : MonoBehaviour
         GameObject[] playerArray = GameObject.FindGameObjectsWithTag("Player");
         player = playerArray[0];
 
+        n = FindObjectsOfType<Node>();
+        q = new Queue<Node>();
+        foreach (Node node in n)
+        {
+            q.Enqueue(node);
+        }
     }
+
+
 
     private void Update()
     {
@@ -64,7 +73,7 @@ public class Enemy : MonoBehaviour
             case enemyStates.attacking:
                 break;
             case enemyStates.roaming:
-                StartCoroutine(Roaming());
+                Roaming();
                 Debug.Log("Roaming");
                 break;
             case enemyStates.patroling:
@@ -129,27 +138,35 @@ public class Enemy : MonoBehaviour
         return pathLength;
     }
 
-    private Vector3 GetNextRoamVector(float radius)
+    private Vector3 GetNextRoamVector()
     {
-        Vector3 randomDirection = Random.insideUnitSphere * radius;
-        randomDirection += transform.position;
-        NavMeshHit hit;
-        Vector3 finalPosition = Vector3.zero;
-        if (NavMesh.SamplePosition(randomDirection, out hit, radius, 1))
+        if(q.Count > 0)
         {
-            finalPosition = hit.position;
+            Vector3 pos = q.Peek().position;
+            q.Dequeue();
+            return pos;
         }
-        return finalPosition;
+        else
+        {
+            foreach (Node node in n)
+            {
+                q.Enqueue(node);
+            }
+            return transform.position;
+        }
     }
 
-    private IEnumerator Roaming()
+    private void Roaming()
     {
-        while(states == enemyStates.roaming && canRoam)
+        if (!nav.pathPending)
         {
-            canRoam = false;
-            yield return new WaitForSeconds(5f);
-            nav.SetDestination(GetNextRoamVector(100f));
-            canRoam = true;
-        }  
+            if (nav.remainingDistance <= nav.stoppingDistance)
+            {
+                if (!nav.hasPath || nav.velocity.sqrMagnitude == 0f)
+                {
+                    nav.SetDestination(GetNextRoamVector());
+                }
+            }
+        }
     }
 }
