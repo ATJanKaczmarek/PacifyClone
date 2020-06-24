@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Fire
   - Letter
+  - Interactable
+  - PlayerAudioSource
   layers:
   - Default
   - TransparentFX
