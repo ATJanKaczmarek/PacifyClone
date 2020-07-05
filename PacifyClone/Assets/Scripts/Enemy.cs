@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -81,6 +82,9 @@ public class Enemy : MonoBehaviour
     {
         CheckSoundSources();
         AnimationHandler();
+        ChangeNodePercentage();
+        Node node = GetClosestNode(transform.position);
+        Debug.Log("==== NODE ====: " + node.name);
 
         if (personalLastSighting != previousSighting)
         {
@@ -242,6 +246,42 @@ public class Enemy : MonoBehaviour
                     soundSourcePlaying = false;
                 }
             }            
+        }
+    }
+
+
+    // Gets closest Node GO
+    private Node GetClosestNode(Vector3 pos)
+    {
+        Node nodery = new Node();
+        float[] distances = new float[n.Length];
+        for (int i = 0; i < n.Length; i++)
+        {
+            distances[i] = Vector3.Distance(n[i].transform.position, pos);
+        }
+        float smallest = distances.Min();
+        for (int i = 0; i < n.Length; i++)
+        {
+            if(smallest == Vector3.Distance(n[i].transform.position, pos))
+            {
+                nodery = n[i];
+            }
+        }
+        return nodery;
+    }
+
+    private void ChangeNodePercentage()
+    {
+        Node playerNearest = GetClosestNode(player.transform.position);
+        Node aiNearest = GetClosestNode(transform.position);
+
+        if (playerNearest.gameObject == aiNearest.gameObject && playerInSight)
+        {
+            aiNearest.probability = 100;
+        }
+        else if (playerNearest.gameObject != aiNearest)
+        {
+            aiNearest.probability = 25;
         }
     }
 }

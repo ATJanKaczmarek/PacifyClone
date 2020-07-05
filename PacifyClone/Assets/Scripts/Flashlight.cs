@@ -4,64 +4,61 @@ using UnityEngine;
 
 public class Flashlight : MonoBehaviour
 {
-    public GameObject lightSource;
-    private bool flashlightOn;
-
-    public AudioSource flashlightTrigger;
-
-    private Light lightComponent;
+    // Light
+    private Light _light;
+    // Mesh Renderer
+    private Renderer flashlightGraphics;
+    // Sound
+    private AudioSource audioSource;
+    // Animation
     private Animator animator;
+    public float waitTime;
+    public float animTimer = 0f; // used to wait for animation til the player can use the flashlight again
     private void Start()
     {
-        lightComponent = lightSource.GetComponent<Light>();
+        _light = gameObject.transform.GetChild(0).GetChild(0).GetComponent<Light>();
+        flashlightGraphics = gameObject.transform.GetChild(0).GetComponent<Renderer>();
+        audioSource = GetComponent<AudioSource>();  
         animator = GetComponent<Animator>();
-        lightSource.SetActive(false);
-        flashlightOn = false;
+
+        _light.enabled = false;
+        flashlightGraphics.enabled = false;
     }
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.F) && !flashlightOn)
+        if (animTimer > 0.0f)
         {
-            animator.SetBool("FlashLightOn", true);  
-            flashlightOn = true;
-            StartCoroutine(lightDelayed());
-            StartCoroutine(flickering());
+            animTimer -= Time.deltaTime;
+            if (animTimer < 0.0f)
+            {
+                animTimer = 0.0f;
+            }
         }
-        else if(Input.GetKeyDown(KeyCode.F) && flashlightOn)
-        {
-            flashlightOn = false;
-            StartCoroutine(lightDelayed());
-        }
-    }
 
-    private IEnumerator lightDelayed()
-    {
-        if(flashlightOn)
+        if (Input.GetKeyDown(KeyCode.F) && !_light.enabled) // if player presses F and the light is disabled
         {
-            yield return new WaitForSeconds(0.2f);
-            flashlightTrigger.Play();
-            lightSource.SetActive(true);
+            flashlightGraphics.enabled = true;
+            animator.SetBool("FlashLightOn", true);
+            Invoke("ActivateFlashLight", 0.15f);
         }
-        else
+        else if (Input.GetKeyDown(KeyCode.F) && _light.enabled) // if player presses F and the light is enabled
         {
-            flashlightTrigger.Play();
-            lightSource.SetActive(false);
-            yield return new WaitForSeconds(0.15f);
+            _light.enabled = false;
+            audioSource.Play();
             animator.SetBool("FlashLightOn", false);
+            Invoke("DeactivateFlashlight", 0.15f);
         }
     }
 
-    private IEnumerator flickering()
+    private void ActivateFlashLight()
     {
-        if(flashlightOn)
-        {
-            yield return new WaitForSeconds(10f);
-            lightComponent.intensity = 999999f;
-            yield return new WaitForSeconds(0.1f);
-            lightComponent.intensity = 9999999f;
-            yield return new WaitForSeconds(0.1f);
-            StartCoroutine(flickering());
-        }
+        audioSource.Play();
+        _light.enabled = true;
+    }
+
+    private void DeactivateFlashlight()
+    {
+        flashlightGraphics.enabled = false;
     }
 }

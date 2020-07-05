@@ -5,7 +5,7 @@ using TMPro;
 
 public class Node : MonoBehaviour
 {
-    private int probability = 25;
+    public int probability = 25;
     private TextMeshPro text;
     private MeshRenderer sphere;
     public Material[] materials;
@@ -28,7 +28,8 @@ public class Node : MonoBehaviour
 
     private void FaceToPlayer()
     {
-        transform.rotation = Camera.main.transform.rotation;
+        if(Camera.main != null)
+            transform.rotation = Camera.main.transform.rotation;
     }
 
     private void ChangeNodeGraphics()

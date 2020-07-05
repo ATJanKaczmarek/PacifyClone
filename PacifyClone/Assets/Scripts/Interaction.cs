@@ -17,8 +17,12 @@ public class Interaction : MonoBehaviour
     public TMP_Text interactionText;
     public GameObject UI;
     public ActivationTypes type;
-    public SphereCollider interactionZone;
-    public bool canInteract;
+    //public SphereCollider interactionRange;
+    public bool playerInInteractionRange;
+    public int maxRange;
+    public int minRange;
+    private Vector3 playerPos;
+    private GameObject player;
 
     [Header("Sound")]
     public AudioClip sound;
@@ -31,29 +35,44 @@ public class Interaction : MonoBehaviour
     private void Start()
     {
         UI.SetActive(false);
+        player = GameObject.FindWithTag("Player");
+        playerPos = player.transform.position;
     }
 
     private void Update()
     {
-        RaycastHit hit;
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        if (Physics.Raycast(ray, out hit))
+        if ((Vector3.Distance(transform.position, player.transform.position) < maxRange) && (Vector3.Distance(transform.position, player.transform.position) > minRange))
         {
-            if (hit.transform != null)
-            {
-                if (hit.transform.gameObject.tag == "Interactable" && canInteract)
-                {
-                    interactionText.text = interactMessage;
-                    UI.SetActive(true);
+            playerInInteractionRange = true;
+        }
+        else
+        {
+            playerInInteractionRange = false;
+        }
 
-                    if(Input.GetKeyDown(interactionKey))
-                        Interact();
-                }
-                else
+        
+        if(Camera.main != null)
+        {
+            RaycastHit hit1;
+            Ray ray1 = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray1, out hit1))
+            {
+                if (hit1.transform != null)
                 {
-                    interactionText.text = interactMessage;
-                    UI.SetActive(false);
+                    if (hit1.collider.gameObject.tag == "Interactable" && playerInInteractionRange)
+                    {
+                        interactionText.text = interactMessage;
+                        UI.SetActive(true);
+
+                        if (Input.GetKeyDown(interactionKey))
+                            Interact();
+                    }
+                    else
+                    {
+                        interactionText.text = interactMessage;
+                        UI.SetActive(false);
+
+                    }
                 }
             }
         }
@@ -80,21 +99,4 @@ public class Interaction : MonoBehaviour
             source.Stop();
         }
     }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if(other.gameObject.tag == "Player")
-        {
-            canInteract = true;
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if(other.gameObject.tag == "Player")
-        {
-            canInteract = false;
-        }
-    }
-
 }

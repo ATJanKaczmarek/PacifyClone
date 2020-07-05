@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    #region Variables
+    #region public
+
     public CharacterController controller;
     public float speed = 6.0f;
     public float gravity = -9.81f;
@@ -16,11 +19,20 @@ public class PlayerMovement : MonoBehaviour
     public AudioClip[] footsteps;
     public AudioClip jumpSound;
     public AudioSource source;
-    private bool soundFinished = true;
 
+    #region Used in other Classes
+    public bool isGrounded;
+    public bool isRunning;
+    public bool isWalking;
+    #endregion Used in other Classes
+    #endregion public
+
+    #region private
+    private bool soundFinished = true;
     private Vector3 velocity;
-    private bool isGrounded;
-    private bool isRunning;
+    private AudioClip oldFootstepSound;
+    #endregion private
+    #endregion Variables
     private void Update()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
@@ -53,10 +65,25 @@ public class PlayerMovement : MonoBehaviour
         {
             if (isGrounded && soundFinished)
             {
-                int randomNumber = Random.Range(0, footsteps.Length);
-                source.clip = footsteps[randomNumber];
-                source.Play();
-                StartCoroutine(WaitForEndOfSound());
+                isWalking = true;
+                bool done = false;
+                while (!done)
+                {
+                    int randomNumber = Random.Range(0, footsteps.Length);
+                    if (oldFootstepSound != footsteps[randomNumber])
+                    {
+                        source.clip = footsteps[randomNumber];
+                        source.Play();
+                        oldFootstepSound = footsteps[randomNumber];
+                        StartCoroutine(WaitForEndOfSound());
+                        done = true;
+                    }
+                    else
+                    {
+                        randomNumber = Random.Range(0, footsteps.Length);
+                        done = false;
+                    }
+                }
             }
         }
 
